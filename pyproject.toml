@@ -19,7 +19,7 @@ dependencies = [
 ]
 
 [project.scripts]
-mcp-amap-server = "amap_mcp_server:main"
+amap-mcp-server = "amap_mcp_server:main"
 
 [project.urls]
 "Homepage" = "https://github.com/sugarforever/amap-mcp-server"
