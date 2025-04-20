@@ -4,10 +4,15 @@ build-backend = "hatchling.build"
 
 [project]
 name = "amap-mcp-server"
-version = "0.1.0"
+version = "0.1.1"
 description = "Python版本高德地图MCP Server"
 readme = "README.md"
 requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
 dependencies = [
     "mcp>=1.6.0",
     "requests>=2.32.3",
@@ -15,3 +20,7 @@ dependencies = [
 
 [project.scripts]
 mcp-amap-server = "amap_mcp_server:main"
+
+[project.urls]
+"Homepage" = "https://github.com/sugarforever/amap-mcp-server"
+"Bug Tracker" = "https://github.com/sugarforever/amap-mcp-server/issues"
