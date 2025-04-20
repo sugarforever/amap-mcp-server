@@ -1,0 +1,17 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "amap-mcp-server"
+version = "0.1.0"
+description = "Python版本高德地图MCP Server"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=1.6.0",
+    "requests>=2.32.3",
+]
+
+[project.scripts]
+mcp-amap-server = "amap_mcp_server:main"
