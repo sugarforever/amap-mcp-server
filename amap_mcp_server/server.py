@@ -135,15 +135,83 @@ def maps_weather(city: str) -> Dict[str, Any]:
         return {"error": f"Request failed: {str(e)}"}
 
 @mcp.tool()
-def maps_bicycling(origin: str, destination: str) -> Dict[str, Any]:
-    """骑行路径规划用于规划骑行通勤方案，规划时会考虑天桥、单行线、封路等情况。最大支持 500km 的骑行路线规划"""
+def maps_bicycling_by_address(origin_address: str, destination_address: str, origin_city: Optional[str] = None, destination_city: Optional[str] = None) -> Dict[str, Any]:
+    """Plans a bicycle route between two locations using addresses. Unless you have a specific reason to use coordinates, it's recommended to use this tool.
+    
+    Args:
+        origin_address: Starting point address (e.g. "北京市朝阳区阜通东大街6号")
+        destination_address: Ending point address (e.g. "北京市海淀区上地十街10号")
+        origin_city: Optional city name for the origin address to improve geocoding accuracy
+        destination_city: Optional city name for the destination address to improve geocoding accuracy
+        
+    Returns:
+        Route information including distance, duration, and turn-by-turn instructions.
+        Considers bridges, one-way streets, and road closures. Supports routes up to 500km.
+    """
+    try:
+        # Convert origin address to coordinates
+        origin_result = maps_geo(origin_address, origin_city)
+        if "error" in origin_result:
+            return {"error": f"Failed to geocode origin address: {origin_result['error']}"}
+        
+        if not origin_result.get("return") or not origin_result["return"]:
+            return {"error": "No geocoding results found for origin address"}
+        
+        origin_location = origin_result["return"][0].get("location")
+        if not origin_location:
+            return {"error": "Could not extract coordinates from origin geocoding result"}
+        
+        # Convert destination address to coordinates
+        destination_result = maps_geo(destination_address, destination_city)
+        if "error" in destination_result:
+            return {"error": f"Failed to geocode destination address: {destination_result['error']}"}
+        
+        if not destination_result.get("return") or not destination_result["return"]:
+            return {"error": "No geocoding results found for destination address"}
+        
+        destination_location = destination_result["return"][0].get("location")
+        if not destination_location:
+            return {"error": "Could not extract coordinates from destination geocoding result"}
+        
+        # Use the coordinates to plan the bicycle route
+        route_result = maps_bicycling(origin_location, destination_location)
+        
+        # Add address information to the result
+        if "error" not in route_result:
+            route_result["addresses"] = {
+                "origin": {
+                    "address": origin_address,
+                    "coordinates": origin_location
+                },
+                "destination": {
+                    "address": destination_address,
+                    "coordinates": destination_location
+                }
+            }
+        
+        return route_result
+    except Exception as e:
+        return {"error": f"Route planning failed: {str(e)}"}
+    
+@mcp.tool()
+def maps_bicycling(origin_coordinates: str, destination_coordinates: str) -> Dict[str, Any]:
+    """Plans a bicycle route between two coordinates.
+    
+    Args:
+        origin_coordinates: Starting point coordinates in the format "longitude,latitude" (e.g. "116.434307,39.90909")
+        destination_coordinates: Ending point coordinates in the format "longitude,latitude" (e.g. "116.434307,39.90909")
+        
+    Returns:
+        Route information including distance, duration, and turn-by-turn instructions.
+        Considers bridges, one-way streets, and road closures. Supports routes up to 500km.
+    """
     try:
         response = requests.get(
             "https://restapi.amap.com/v4/direction/bicycling",
             params={
                 "key": AMAP_MAPS_API_KEY,
-                "origin": origin,
-                "destination": destination
+                "origin": origin_coordinates,
+                "destination": destination_coordinates
             }
         )
         response.raise_for_status()
