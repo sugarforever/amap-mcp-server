@@ -1,6 +1,6 @@
-# Python版本高德地图MCP Server
+# 高德地图 MCP Server （Python版本）
 
-这是高德地图MCP Sever [https://github.com/zxypro1/amap-maps-mcp-server](https://github.com/zxypro1/amap-maps-mcp-server) 的Python克隆。
+这是高德地图 MCP Sever [https://github.com/zxypro1/amap-maps-mcp-server](https://github.com/zxypro1/amap-maps-mcp-server) 的Python克隆。
 
 # 高德地图 MCP 服务工具列表
 
@@ -90,5 +90,27 @@ IP 定位根据用户输入的 IP 地址，定位 IP 的所在位置
 
 **参数：**
 - `id`: POI ID
+
+# 配置方法
+
+要使用此服务，您需要在应用中添加以下MCP配置：
+
+```json
+{
+    "mcpServers": {
+        "amap-mcp-server": {
+            "command": "uvx",
+            "args": [
+                "amap-mcp-server"
+            ],
+            "env": {
+                "AMAP_MAPS_API_KEY": "your valid amap maps api key"
+            }
+        }
+    }
+}
+```
+
+将上述配置添加到您的配置文件中，并确保将`"your valid amap maps api key"`替换为您的实际高德地图API密钥。您可以在[高德开放平台](https://lbs.amap.com/)注册并获取API密钥。
 
 
