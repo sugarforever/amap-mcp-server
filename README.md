@@ -38,7 +38,7 @@ IP 定位根据用户输入的 IP 地址，定位 IP 的所在位置
 ### 路线规划工具
 
 #### 骑行路线
-##### maps_bicycling
+##### maps_bicycling_by_coordinates
 骑行路径规划用于规划骑行通勤方案，规划时会考虑天桥、单行线、封路等情况。最大支持 500km 的骑行路线规划
 
 **参数：**
@@ -55,7 +55,7 @@ IP 定位根据用户输入的 IP 地址，定位 IP 的所在位置
 - `destination_city` (可选): 终点所在城市，用于提高地理编码准确性
 
 #### 步行路线
-##### maps_direction_walking
+##### maps_direction_walking_by_coordinates
 步行路径规划 API 可以根据输入起点终点经纬度坐标规划100km 以内的步行通勤方案，并且返回通勤方案的数据
 
 **参数：**
@@ -72,7 +72,7 @@ IP 定位根据用户输入的 IP 地址，定位 IP 的所在位置
 - `destination_city` (可选): 终点所在城市，用于提高地理编码准确性
 
 #### 驾车路线
-##### maps_direction_driving
+##### maps_direction_driving_by_coordinates
 驾车路径规划 API 可以根据用户起终点经纬度坐标规划以小客车、轿车通勤出行的方案，并且返回通勤方案的数据
 
 **参数：**
@@ -89,7 +89,7 @@ IP 定位根据用户输入的 IP 地址，定位 IP 的所在位置
 - `destination_city` (可选): 终点所在城市，用于提高地理编码准确性
 
 #### 公共交通路线
-##### maps_direction_transit_integrated
+##### maps_direction_transit_integrated_by_coordinates
 根据用户起终点经纬度坐标规划综合各类公共（火车、公交、地铁）交通方式的通勤方案，并且返回通勤方案的数据，跨城场景下必须传起点城市与终点城市
 
 **参数：**
