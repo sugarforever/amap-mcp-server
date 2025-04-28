@@ -573,5 +573,182 @@ def maps_search_detail(id: str) -> Dict[str, Any]:
     except requests.exceptions.RequestException as e:
         return {"error": f"Request failed: {str(e)}"}
 
+@mcp.tool()
+def maps_direction_walking_by_address(origin_address: str, destination_address: str, origin_city: Optional[str] = None, destination_city: Optional[str] = None) -> Dict[str, Any]:
+    """Plans a walking route between two locations using addresses. Unless you have a specific reason to use coordinates, it's recommended to use this tool.
+    
+    Args:
+        origin_address: Starting point address (e.g. "北京市朝阳区阜通东大街6号")
+        destination_address: Ending point address (e.g. "北京市海淀区上地十街10号")
+        origin_city: Optional city name for the origin address to improve geocoding accuracy
+        destination_city: Optional city name for the destination address to improve geocoding accuracy
+        
+    Returns:
+        Route information including distance, duration, and turn-by-turn instructions.
+        Supports routes up to 100km.
+    """
+    try:
+        # Convert origin address to coordinates
+        origin_result = maps_geo(origin_address, origin_city)
+        if "error" in origin_result:
+            return {"error": f"Failed to geocode origin address: {origin_result['error']}"}
+        
+        if not origin_result.get("return") or not origin_result["return"]:
+            return {"error": "No geocoding results found for origin address"}
+        
+        origin_location = origin_result["return"][0].get("location")
+        if not origin_location:
+            return {"error": "Could not extract coordinates from origin geocoding result"}
+        
+        # Convert destination address to coordinates
+        destination_result = maps_geo(destination_address, destination_city)
+        if "error" in destination_result:
+            return {"error": f"Failed to geocode destination address: {destination_result['error']}"}
+        
+        if not destination_result.get("return") or not destination_result["return"]:
+            return {"error": "No geocoding results found for destination address"}
+        
+        destination_location = destination_result["return"][0].get("location")
+        if not destination_location:
+            return {"error": "Could not extract coordinates from destination geocoding result"}
+        
+        # Use the coordinates to plan the walking route
+        route_result = maps_direction_walking(origin_location, destination_location)
+        
+        # Add address information to the result
+        if "error" not in route_result:
+            route_result["addresses"] = {
+                "origin": {
+                    "address": origin_address,
+                    "coordinates": origin_location
+                },
+                "destination": {
+                    "address": destination_address,
+                    "coordinates": destination_location
+                }
+            }
+        
+        return route_result
+    except Exception as e:
+        return {"error": f"Route planning failed: {str(e)}"}
+
+@mcp.tool()
+def maps_direction_driving_by_address(origin_address: str, destination_address: str, origin_city: Optional[str] = None, destination_city: Optional[str] = None) -> Dict[str, Any]:
+    """Plans a driving route between two locations using addresses. Unless you have a specific reason to use coordinates, it's recommended to use this tool.
+    
+    Args:
+        origin_address: Starting point address (e.g. "北京市朝阳区阜通东大街6号")
+        destination_address: Ending point address (e.g. "北京市海淀区上地十街10号")
+        origin_city: Optional city name for the origin address to improve geocoding accuracy
+        destination_city: Optional city name for the destination address to improve geocoding accuracy
+        
+    Returns:
+        Route information including distance, duration, and turn-by-turn instructions.
+        Considers traffic conditions and road restrictions.
+    """
+    try:
+        # Convert origin address to coordinates
+        origin_result = maps_geo(origin_address, origin_city)
+        if "error" in origin_result:
+            return {"error": f"Failed to geocode origin address: {origin_result['error']}"}
+        
+        if not origin_result.get("return") or not origin_result["return"]:
+            return {"error": "No geocoding results found for origin address"}
+        
+        origin_location = origin_result["return"][0].get("location")
+        if not origin_location:
+            return {"error": "Could not extract coordinates from origin geocoding result"}
+        
+        # Convert destination address to coordinates
+        destination_result = maps_geo(destination_address, destination_city)
+        if "error" in destination_result:
+            return {"error": f"Failed to geocode destination address: {destination_result['error']}"}
+        
+        if not destination_result.get("return") or not destination_result["return"]:
+            return {"error": "No geocoding results found for destination address"}
+        
+        destination_location = destination_result["return"][0].get("location")
+        if not destination_location:
+            return {"error": "Could not extract coordinates from destination geocoding result"}
+        
+        # Use the coordinates to plan the driving route
+        route_result = maps_direction_driving(origin_location, destination_location)
+        
+        # Add address information to the result
+        if "error" not in route_result:
+            route_result["addresses"] = {
+                "origin": {
+                    "address": origin_address,
+                    "coordinates": origin_location
+                },
+                "destination": {
+                    "address": destination_address,
+                    "coordinates": destination_location
+                }
+            }
+        
+        return route_result
+    except Exception as e:
+        return {"error": f"Route planning failed: {str(e)}"}
+
+@mcp.tool()
+def maps_direction_transit_integrated_by_address(origin_address: str, destination_address: str, origin_city: str, destination_city: str) -> Dict[str, Any]:
+    """Plans a public transit route between two locations using addresses. Unless you have a specific reason to use coordinates, it's recommended to use this tool.
+    
+    Args:
+        origin_address: Starting point address (e.g. "北京市朝阳区阜通东大街6号")
+        destination_address: Ending point address (e.g. "北京市海淀区上地十街10号")
+        origin_city: City name for the origin address (required for cross-city transit)
+        destination_city: City name for the destination address (required for cross-city transit)
+        
+    Returns:
+        Route information including distance, duration, and detailed transit instructions.
+        Considers various public transit options including buses, subways, and trains.
+    """
+    try:
+        # Convert origin address to coordinates
+        origin_result = maps_geo(origin_address, origin_city)
+        if "error" in origin_result:
+            return {"error": f"Failed to geocode origin address: {origin_result['error']}"}
+        
+        if not origin_result.get("return") or not origin_result["return"]:
+            return {"error": "No geocoding results found for origin address"}
+        
+        origin_location = origin_result["return"][0].get("location")
+        if not origin_location:
+            return {"error": "Could not extract coordinates from origin geocoding result"}
+        
+        # Convert destination address to coordinates
+        destination_result = maps_geo(destination_address, destination_city)
+        if "error" in destination_result:
+            return {"error": f"Failed to geocode destination address: {destination_result['error']}"}
+        
+        if not destination_result.get("return") or not destination_result["return"]:
+            return {"error": "No geocoding results found for destination address"}
+        
+        destination_location = destination_result["return"][0].get("location")
+        if not destination_location:
+            return {"error": "Could not extract coordinates from destination geocoding result"}
+        
+        # Use the coordinates to plan the transit route
+        route_result = maps_direction_transit_integrated(origin_location, destination_location, origin_city, destination_city)
+        
+        # Add address information to the result
+        if "error" not in route_result:
+            route_result["addresses"] = {
+                "origin": {
+                    "address": origin_address,
+                    "coordinates": origin_location
+                },
+                "destination": {
+                    "address": destination_address,
+                    "coordinates": destination_location
+                }
+            }
+        
+        return route_result
+    except Exception as e:
+        return {"error": f"Route planning failed: {str(e)}"}
+
 if __name__ == "__main__":
     mcp.run()
