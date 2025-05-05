@@ -777,9 +777,4 @@ def maps_search_detail(id: str) -> Dict[str, Any]:
         return {"error": f"Request failed: {str(e)}"}
 
 if __name__ == "__main__":
-    import sys
-    transport = 'stdio'
-    if len(sys.argv) > 1:
-        transport = sys.argv[1]
-        
-    mcp.run(transport=transport)
+    mcp.run()
