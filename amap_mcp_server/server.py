@@ -1,4 +1,6 @@
 import os
+import sys
+import argparse
 from typing import Any, Dict, List, Optional
 import requests
 from mcp.server.fastmcp import FastMCP
@@ -777,4 +779,11 @@ def maps_search_detail(id: str) -> Dict[str, Any]:
         return {"error": f"Request failed: {str(e)}"}
 
 if __name__ == "__main__":
-    mcp.run()
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description="Amap MCP Server")
+    parser.add_argument('transport', nargs='?', default='stdio', choices=['stdio', 'sse'],
+                        help='Transport type (stdio or sse)')
+    args = parser.parse_args()
+    
+    # Run the MCP server with the specified transport
+    mcp.run(transport=args.transport)
