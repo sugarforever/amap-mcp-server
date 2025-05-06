@@ -143,7 +143,9 @@ IP 定位根据用户输入的 IP 地址，定位 IP 的所在位置
 
 ## 配置方法
 
-要使用此服务，您需要在应用中添加以下MCP配置：
+要使用此服务，您需要在应用中添加以下MCP配置。服务支持两种传输方式：`stdio`（默认）和`sse`。
+
+### stdio 传输（默认）
 
 ```json
 {
@@ -156,6 +158,39 @@ IP 定位根据用户输入的 IP 地址，定位 IP 的所在位置
             "env": {
                 "AMAP_MAPS_API_KEY": "your valid amap maps api key"
             }
+        }
+    }
+}
+```
+
+### SSE 传输
+
+```json
+{
+    "mcpServers": {
+        "amap-mcp-server": {
+            "command": "uvx",
+            "args": [
+                "amap-mcp-server",
+                "sse"
+            ],
+            "env": {
+                "AMAP_MAPS_API_KEY": "your valid amap maps api key"
+            }
+        }
+    }
+}
+```
+
+### 使用已运行的 SSE MCP 服务器
+
+如果您已经在本地启动了 SSE MCP 服务器（例如在端口 9999 上运行），可以使用以下配置直接连接：
+
+```json
+{
+    "mcpServers": {
+        "amap-mcp-server": {
+            "url": "http://localhost:9999"
         }
     }
 }
