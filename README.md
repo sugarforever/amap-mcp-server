@@ -143,7 +143,7 @@ IP 定位根据用户输入的 IP 地址，定位 IP 的所在位置
 
 ## 配置方法
 
-要使用此服务，您需要在应用中添加以下MCP配置。服务支持两种传输方式：`stdio`（默认）和`sse`。
+要使用此服务，您需要在应用中添加以下MCP配置。服务支持三种传输方式：`stdio`（默认）、`sse` 和 `streamable-http`。
 
 ### stdio 传输（默认）
 
@@ -173,6 +173,25 @@ IP 定位根据用户输入的 IP 地址，定位 IP 的所在位置
             "args": [
                 "amap-mcp-server",
                 "sse"
+            ],
+            "env": {
+                "AMAP_MAPS_API_KEY": "your valid amap maps api key"
+            }
+        }
+    }
+}
+```
+
+### Streamable HTTP 传输
+
+```json
+{
+    "mcpServers": {
+        "amap-mcp-server": {
+            "command": "uvx",
+            "args": [
+                "amap-mcp-server",
+                "streamable-http"
             ],
             "env": {
                 "AMAP_MAPS_API_KEY": "your valid amap maps api key"
