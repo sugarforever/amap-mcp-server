@@ -147,6 +147,8 @@ IP 定位根据用户输入的 IP 地址，定位 IP 的所在位置
 
 ### stdio 传输（默认）
 
+直接在客户端配置如下MCP Server即可。
+
 ```json
 {
     "mcpServers": {
@@ -165,18 +167,27 @@ IP 定位根据用户输入的 IP 地址，定位 IP 的所在位置
 
 ### SSE 传输
 
+SSE传输支持实时数据推送，适合远程部署MCP Server。
+
+本地以SSE运行 `amap-mcp-server`：
+
+```bash
+$ export AMAP_MAPS_API_KEY=你的有效API Key
+$ uvx amap-mcp-server sse
+
+INFO:     Started server process [50125]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+```
+
+MCP客户端配置：
+
 ```json
 {
     "mcpServers": {
         "amap-mcp-server": {
-            "command": "uvx",
-            "args": [
-                "amap-mcp-server",
-                "sse"
-            ],
-            "env": {
-                "AMAP_MAPS_API_KEY": "your valid amap maps api key"
-            }
+            "url": "http://0.0.0.0:8000/sse"
         }
     }
 }
@@ -184,40 +195,20 @@ IP 定位根据用户输入的 IP 地址，定位 IP 的所在位置
 
 ### Streamable HTTP 传输
 
-```json
-{
-    "mcpServers": {
-        "amap-mcp-server": {
-            "command": "uvx",
-            "args": [
-                "amap-mcp-server",
-                "streamable-http"
-            ],
-            "env": {
-                "AMAP_MAPS_API_KEY": "your valid amap maps api key"
-            }
-        }
-    }
-}
+本地以Streamable HTTP运行 `amap-mcp-server`：
+
+```bash
+$ export AMAP_MAPS_API_KEY=你的有效API Key
+$ uvx amap-mcp-server streamable-http
+
+INFO:     Started server process [50227]
+INFO:     Waiting for application startup.
+StreamableHTTP session manager started
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
 ```
 
-### 使用已运行的 SSE MCP 服务器
-
-如果您已经在本地启动了 SSE MCP 服务器（例如在端口 9999 上运行），可以使用以下配置直接连接：
-
-```json
-{
-    "mcpServers": {
-        "amap-mcp-server": {
-            "url": "http://localhost:9999/sse"
-        }
-    }
-}
-```
-
-### 使用已运行的 Streamable HTTP MCP 服务器
-
-如果您已经在本地启动了 Streamable HTTP MCP 服务器（例如在端口 8000 上运行），可以使用以下配置直接连接：
+MCP客户端配置：
 
 ```json
 {
@@ -229,6 +220,4 @@ IP 定位根据用户输入的 IP 地址，定位 IP 的所在位置
 }
 ```
 
-将上述配置添加到您的配置文件中，并确保将`"your valid amap maps api key"`替换为您的实际高德地图API密钥。您可以在[高德开放平台](https://lbs.amap.com/)注册并获取API密钥。
-
-
+您可以在[高德开放平台](https://lbs.amap.com/)注册并获取API密钥。
