@@ -209,7 +209,21 @@ IP 定位根据用户输入的 IP 地址，定位 IP 的所在位置
 {
     "mcpServers": {
         "amap-mcp-server": {
-            "url": "http://localhost:9999"
+            "url": "http://localhost:9999/sse"
+        }
+    }
+}
+```
+
+### 使用已运行的 Streamable HTTP MCP 服务器
+
+如果您已经在本地启动了 Streamable HTTP MCP 服务器（例如在端口 8000 上运行），可以使用以下配置直接连接：
+
+```json
+{
+    "mcpServers": {
+        "amap-mcp-server": {
+            "url": "http://localhost:8000/mcp"
         }
     }
 }
