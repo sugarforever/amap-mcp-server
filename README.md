@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/sugarforever-amap-mcp-server-badge.png)](https://mseep.ai/app/sugarforever-amap-mcp-server)
+
 # 高德地图 MCP Server
 
 该高德地图 MCP Server 发布在 [PyPI](https://pypi.org/project/amap-mcp-server/)。
