@@ -2,6 +2,10 @@
 
 该高德地图 MCP Server 发布在 [PyPI](https://pypi.org/project/amap-mcp-server/)。
 
+<a href="https://glama.ai/mcp/servers/@sugarforever/amap-mcp-server">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@sugarforever/amap-mcp-server/badge" alt="高德地图 MCP server" />
+</a>
+
 ## MCP 工具列表
 
 本服务提供以下工具：
