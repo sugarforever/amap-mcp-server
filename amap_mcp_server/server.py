@@ -536,13 +536,13 @@ def maps_direction_transit_integrated_by_address(origin_address: str, destinatio
 @mcp.tool()
 def maps_direction_transit_integrated_by_coordinates(origin: str, destination: str, city: str, cityd: str) -> Dict[str, Any]:
     """根据用户起终点经纬度坐标规划综合各类公共（火车、公交、地铁）交通方式的通勤方案，并且返回通勤方案的数据，跨城场景下必须传起点城市与终点城市
-    
+
     Args:
         origin (str): 起点经纬度坐标，格式为"经度,纬度" (例如："116.434307,39.90909")
         destination (str): 终点经纬度坐标，格式为"经度,纬度" (例如："116.434307,39.90909")
         city (str): 起点城市名称
         cityd (str): 终点城市名称
-        
+
     Returns:
         Dict[str, Any]: 包含距离、时长和详细公共交通信息的路线数据
     """
@@ -559,72 +559,128 @@ def maps_direction_transit_integrated_by_coordinates(origin: str, destination: s
         )
         response.raise_for_status()
         data = response.json()
-        
-        if data["status"] != "1":
+
+        print(data)
+        if data.get("status") != "1":
             return {"error": f"Direction Transit Integrated failed: {data.get('info') or data.get('infocode')}"}
-            
+
+        # Safe handling for route data - it might be a list or missing
+        route_data = data.get("route")
+        if not isinstance(route_data, dict):
+            return {"error": "No route data available"}
+
         transits = []
-        if data["route"].get("transits"):
-            for transit in data["route"]["transits"]:
+        transits_data = route_data.get("transits")
+        if isinstance(transits_data, list):
+            for transit in transits_data:
+                # Ensure transit is a dict
+                if not isinstance(transit, dict):
+                    continue
+
                 segments = []
-                if transit.get("segments"):
-                    for segment in transit["segments"]:
+                segments_data = transit.get("segments")
+                if isinstance(segments_data, list):
+                    for segment in segments_data:
+                        # Ensure segment is a dict
+                        if not isinstance(segment, dict):
+                            continue
+
+                        # Safe handling for walking data
+                        walking_data = segment.get("walking")
+                        if not isinstance(walking_data, dict):
+                            walking_data = {}
+
                         walking_steps = []
-                        if segment.get("walking", {}).get("steps"):
-                            for step in segment["walking"]["steps"]:
-                                walking_steps.append({
-                                    "instruction": step.get("instruction"),
-                                    "road": step.get("road"),
-                                    "distance": step.get("distance"),
-                                    "action": step.get("action"),
-                                    "assistant_action": step.get("assistant_action")
-                                })
-                                
+                        steps_data = walking_data.get("steps")
+                        if isinstance(steps_data, list):
+                            for step in steps_data:
+                                if isinstance(step, dict):
+                                    walking_steps.append({
+                                        "instruction": step.get("instruction"),
+                                        "road": step.get("road"),
+                                        "distance": step.get("distance"),
+                                        "action": step.get("action"),
+                                        "assistant_action": step.get("assistant_action")
+                                    })
+
+                        # Safe handling for bus data
+                        bus_data = segment.get("bus")
+                        if not isinstance(bus_data, dict):
+                            bus_data = {}
+
                         buslines = []
-                        if segment.get("bus", {}).get("buslines"):
-                            for busline in segment["bus"]["buslines"]:
+                        buslines_data = bus_data.get("buslines")
+                        if isinstance(buslines_data, list):
+                            for busline in buslines_data:
+                                # Ensure busline is a dict
+                                if not isinstance(busline, dict):
+                                    continue
+
                                 via_stops = []
-                                if busline.get("via_stops"):
-                                    for stop in busline["via_stops"]:
-                                        via_stops.append({"name": stop.get("name")})
-                                        
+                                via_stops_data = busline.get("via_stops")
+                                if isinstance(via_stops_data, list):
+                                    for stop in via_stops_data:
+                                        if isinstance(stop, dict):
+                                            via_stops.append({"name": stop.get("name")})
+
+                                dep_stop = busline.get("departure_stop")
+                                if not isinstance(dep_stop, dict):
+                                    dep_stop = {}
+
+                                arr_stop = busline.get("arrival_stop")
+                                if not isinstance(arr_stop, dict):
+                                    arr_stop = {}
+
                                 buslines.append({
                                     "name": busline.get("name"),
-                                    "departure_stop": {"name": busline.get("departure_stop", {}).get("name")},
-                                    "arrival_stop": {"name": busline.get("arrival_stop", {}).get("name")},
+                                    "departure_stop": {"name": dep_stop.get("name")},
+                                    "arrival_stop": {"name": arr_stop.get("name")},
                                     "distance": busline.get("distance"),
                                     "duration": busline.get("duration"),
                                     "via_stops": via_stops
                                 })
-                                
+
+                        # Safe handling for other optional fields
+                        entrance_data = segment.get("entrance")
+                        if not isinstance(entrance_data, dict):
+                            entrance_data = {}
+
+                        exit_data = segment.get("exit")
+                        if not isinstance(exit_data, dict):
+                            exit_data = {}
+
+                        railway_data = segment.get("railway")
+                        if not isinstance(railway_data, dict):
+                            railway_data = {}
+
                         segments.append({
                             "walking": {
-                                "origin": segment.get("walking", {}).get("origin"),
-                                "destination": segment.get("walking", {}).get("destination"),
-                                "distance": segment.get("walking", {}).get("distance"),
-                                "duration": segment.get("walking", {}).get("duration"),
+                                "origin": walking_data.get("origin"),
+                                "destination": walking_data.get("destination"),
+                                "distance": walking_data.get("distance"),
+                                "duration": walking_data.get("duration"),
                                 "steps": walking_steps
                             },
                             "bus": {"buslines": buslines},
-                            "entrance": {"name": segment.get("entrance", {}).get("name")},
-                            "exit": {"name": segment.get("exit", {}).get("name")},
+                            "entrance": {"name": entrance_data.get("name")},
+                            "exit": {"name": exit_data.get("name")},
                             "railway": {
-                                "name": segment.get("railway", {}).get("name"),
-                                "trip": segment.get("railway", {}).get("trip")
+                                "name": railway_data.get("name"),
+                                "trip": railway_data.get("trip")
                             }
                         })
-                        
+
                 transits.append({
                     "duration": transit.get("duration"),
                     "walking_distance": transit.get("walking_distance"),
                     "segments": segments
                 })
-                
+
         return {
             "route": {
-                "origin": data["route"]["origin"],
-                "destination": data["route"]["destination"],
-                "distance": data["route"].get("distance"),
+                "origin": route_data.get("origin"),
+                "destination": route_data.get("destination"),
+                "distance": route_data.get("distance"),
                 "transits": transits
             }
         }
