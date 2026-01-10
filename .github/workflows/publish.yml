@@ -14,6 +14,8 @@ jobs:
     if: github.event_name == 'release'
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history and tags for hatch-vcs
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
