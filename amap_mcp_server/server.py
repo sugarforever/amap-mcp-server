@@ -560,7 +560,7 @@ def maps_direction_transit_integrated_by_coordinates(origin: str, destination: s
         response.raise_for_status()
         data = response.json()
 
-        print(data)
+        
         if data.get("status") != "1":
             return {"error": f"Direction Transit Integrated failed: {data.get('info') or data.get('infocode')}"}
 
