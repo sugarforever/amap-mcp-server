@@ -326,7 +326,8 @@ def maps_direction_walking_by_coordinates(origin: str, destination: str) -> Dict
                 "key": AMAP_MAPS_API_KEY,
                 "origin": origin,
                 "destination": destination
-            }
+            },
+            timeout=(3.05, 15),
         )
         response.raise_for_status()
         data = response.json()
@@ -343,11 +344,13 @@ def maps_direction_walking_by_coordinates(origin: str, destination: str) -> Dict
                     "road": step.get("road"),
                     "distance": step.get("distance"),
                     "orientation": step.get("orientation"),
-                    "duration": step.get("duration")
+                    "duration": step.get("duration"),
+                    "polyline": step.get("polyline"),
                 })
             paths.append({
                 "distance": path.get("distance"),
                 "duration": path.get("duration"),
+                "polyline": path.get("polyline"),
                 "steps": steps
             })
             
@@ -438,7 +441,8 @@ def maps_direction_driving_by_coordinates(origin: str, destination: str) -> Dict
                 "key": AMAP_MAPS_API_KEY,
                 "origin": origin,
                 "destination": destination
-            }
+            },
+            timeout=(3.05, 15),
         )
         response.raise_for_status()
         data = response.json()
@@ -455,10 +459,11 @@ def maps_direction_driving_by_coordinates(origin: str, destination: str) -> Dict
                     "road": step.get("road"),
                     "distance": step.get("distance"),
                     "orientation": step.get("orientation"),
-                    "duration": step.get("duration")
+                    "duration": step.get("duration"),
+                    "polyline": step.get("polyline"),
                 })
             paths.append({
-                "path": path.get("path"),
+                "polyline": path.get("polyline"),
                 "distance": path.get("distance"),
                 "duration": path.get("duration"),
                 "steps": steps
@@ -554,13 +559,23 @@ def maps_direction_transit_integrated_by_coordinates(origin: str, destination: s
                 "origin": origin,
                 "destination": destination,
                 "city": city,
-                "cityd": cityd
-            }
+                "cityd": cityd,
+            },
+            timeout=(3.05, 15),
         )
         response.raise_for_status()
         data = response.json()
 
-        print(data)
+        # MCP stdio 的标准输出只允许承载 JSON-RPC 协议消息。
+        if data.get("status") != "1":
+            return {
+                "error": (
+                    "Direction Transit Integrated failed: "
+                    f"{data.get('info') or data.get('infocode')}"
+                )
+            }
+
+        # print(data)
         if data.get("status") != "1":
             return {"error": f"Direction Transit Integrated failed: {data.get('info') or data.get('infocode')}"}
 
@@ -600,7 +615,8 @@ def maps_direction_transit_integrated_by_coordinates(origin: str, destination: s
                                         "road": step.get("road"),
                                         "distance": step.get("distance"),
                                         "action": step.get("action"),
-                                        "assistant_action": step.get("assistant_action")
+                                        "assistant_action": step.get("assistant_action"),
+                                        "polyline": step.get("polyline"),
                                     })
 
                         # Safe handling for bus data
@@ -637,6 +653,7 @@ def maps_direction_transit_integrated_by_coordinates(origin: str, destination: s
                                     "arrival_stop": {"name": arr_stop.get("name")},
                                     "distance": busline.get("distance"),
                                     "duration": busline.get("duration"),
+                                    "polyline": busline.get("polyline"),
                                     "via_stops": via_stops
                                 })
 
@@ -666,7 +683,8 @@ def maps_direction_transit_integrated_by_coordinates(origin: str, destination: s
                             "exit": {"name": exit_data.get("name")},
                             "railway": {
                                 "name": railway_data.get("name"),
-                                "trip": railway_data.get("trip")
+                                "trip": railway_data.get("trip"),
+                                "polyline": railway_data.get("polyline"),
                             }
                         })
 
@@ -720,16 +738,42 @@ def maps_distance(origins: str, destination: str, type: str = "1") -> Dict[str, 
         return {"error": f"Request failed: {str(e)}"}
 
 @mcp.tool()
-def maps_text_search(keywords: str, city: str = "", citylimit: str = "false") -> Dict[str, Any]:
-    """关键词搜索 API 根据用户输入的关键字进行 POI 搜索，并返回相关的信息"""
+def maps_text_search(
+    keywords: str,
+    city: str = "",
+    citylimit: str = "false",
+    offset: int = 20,
+    page: int = 1,
+    extensions: str = "all",
+) -> Dict[str, Any]:
+    """
+    根据关键词搜索 POI，并返回规划和图片展示需要的扩展字段。
+
+    Args:
+        keywords: POI 搜索关键词。
+        city: 城市名称、城市编码或行政区编码。
+        citylimit: 是否只返回指定城市内的结果。
+        offset: 当前页最多返回的 POI 数量。
+        page: 搜索结果页码。
+        extensions: 返回基本字段或全部扩展字段。
+
+    Returns:
+        包含 POI 列表和城市建议的高德搜索结果。
+    """
     try:
+        safe_offset = max(1, min(int(offset), 25))
+        safe_page = max(1, int(page))
+        safe_extensions = "all" if extensions == "all" else "base"
         response = requests.get(
             "https://restapi.amap.com/v3/place/text",
             params={
                 "key": AMAP_MAPS_API_KEY,
                 "keywords": keywords,
                 "city": city,
-                "citylimit": citylimit
+                "citylimit": citylimit,
+                "offset": safe_offset,
+                "page": safe_page,
+                "extensions": safe_extensions,
             }
         )
         response.raise_for_status()
@@ -745,11 +789,23 @@ def maps_text_search(keywords: str, city: str = "", citylimit: str = "false") ->
                 
         pois = []
         for poi in data.get("pois", []):
+            biz_ext = poi.get("biz_ext") or {}
+            if not isinstance(biz_ext, dict):
+                biz_ext = {}
             pois.append({
                 "id": poi.get("id"),
                 "name": poi.get("name"),
                 "address": poi.get("address"),
-                "typecode": poi.get("typecode")
+                "type": poi.get("type"),
+                "typecode": poi.get("typecode"),
+                "location": poi.get("location"),
+                "tel": poi.get("tel"),
+                "rating": biz_ext.get("rating"),
+                "cost": biz_ext.get("cost"),
+                "opentime": biz_ext.get("opentime"),
+                "opentime2": biz_ext.get("opentime2"),
+                "business_area": poi.get("business_area"),
+                "photos": poi.get("photos") or [],
             })
             
         return {
@@ -796,13 +852,22 @@ def maps_around_search(location: str, radius: str = "1000", keywords: str = "") 
 
 @mcp.tool()
 def maps_search_detail(id: str) -> Dict[str, Any]:
-    """查询关键词搜或者周边搜获取到的POI ID的详细信息"""
+    """
+    查询 POI 详情及照片扩展信息。
+
+    Args:
+        id: 高德 POI ID。
+
+    Returns:
+        包含位置、业务扩展字段和照片的 POI 详情。
+    """
     try:
         response = requests.get(
             "https://restapi.amap.com/v3/place/detail",
             params={
                 "key": AMAP_MAPS_API_KEY,
-                "id": id
+                "id": id,
+                "extensions": "all",
             }
         )
         response.raise_for_status()
@@ -823,7 +888,9 @@ def maps_search_detail(id: str) -> Dict[str, Any]:
             "business_area": poi.get("business_area"),
             "city": poi.get("cityname"),
             "type": poi.get("type"),
-            "alias": poi.get("alias")
+            "alias": poi.get("alias"),
+            "tel": poi.get("tel"),
+            "photos": poi.get("photos") or [],
         }
         
         # Add biz_ext data if available
